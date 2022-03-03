@@ -1,0 +1,17 @@
+version: "3.3"
+networks:
+  graph-starter:
+services:
+  postgresql:
+    restart: always
+    image: artifactory.turkcell.com.tr/local-docker-3rd-party/com/turkcell/noderunner/postgres:12-rhel7
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRESQL_USER=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=graphdb
+    volumes:
+      - /var/lib/postgresql/data
+    networks:
+      - graph-starter
