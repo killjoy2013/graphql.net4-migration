@@ -6,17 +6,14 @@ using System;
 
 namespace GraphQL.WebApi.Graph.Schema
 {
-    public class GraphQLSchema : GraphQL.Types.Schema
+    public class FoodSchema : GraphQL.Types.Schema
     {
-        public GraphQLSchema(IServiceProvider provider) : base(provider)
+        public FoodSchema(IServiceProvider provider) : base(provider)
         {
             var fieldService = provider.GetRequiredService<IFieldService>();
-            fieldService.RegisterFields();
-            
-            Mutation = provider.GetRequiredService<MainMutation>();
-            //Query = resolver.Resolve<MainQuery>();
+            fieldService.RegisterFields();            
+            Mutation = provider.GetRequiredService<MainMutation>();           
             Query = provider.GetRequiredService<MainQuery>();
-
         }
     }
 }

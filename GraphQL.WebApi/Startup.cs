@@ -39,15 +39,12 @@ namespace GraphQL.WebApi
                 options.UseNpgsql(_connectionString);
             });
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IFieldService, FieldService>();           
-
+            services.AddScoped<IFieldService, FieldService>();
             services.AddScoped<MainMutation>();
             services.AddScoped<MainQuery>();
             services.AddScoped<RestaurantGType>();
             services.AddScoped<TagGType>();
-
-            services.AddScoped<ISchema, GraphQLSchema>();
-
+            services.AddScoped<ISchema, FoodSchema>();
             services.AddGraphQL()                
               .AddGraphTypes(ServiceLifetime.Scoped);
 
