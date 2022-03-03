@@ -40,11 +40,12 @@ namespace GraphQL.WebApi
             });
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IFieldService, FieldService>();
+
             services.AddScoped<MainMutation>();
             services.AddScoped<MainQuery>();
             services.AddScoped<RestaurantGType>();
             services.AddScoped<TagGType>();
-            services.AddScoped<ISchema, FoodSchema>();
+            services.AddScoped<FoodSchema>();
             services.AddGraphQL()                
               .AddGraphTypes(ServiceLifetime.Scoped);
 

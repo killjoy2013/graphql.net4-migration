@@ -1,6 +1,7 @@
 ﻿using GraphQL.NewtonsoftJson;
 using GraphQL.Types;
 using GraphQL.Validation.Complexity;
+using GraphQL.WebApi.Graph.Schema;
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -11,11 +12,11 @@ namespace GraphQL.WebApi.Controllers
     public class GraphQLController : Controller
     {
         private IDocumentExecuter _executer;       
-        private ISchema _schema;
+        private FoodSchema _schema;
 
         public GraphQLController(
              IDocumentExecuter executer,            
-             ISchema schema)
+             FoodSchema schema)
         {
             _executer = executer;           
             _schema = schema;
