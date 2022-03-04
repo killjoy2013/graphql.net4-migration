@@ -1,23 +1,23 @@
+using Food.Graph.Mutation;
+using Food.Graph.Query;
+using Food.Graph.Schema;
+using Food.Graph.Type;
+using Food.Interfaces;
+using Food.Repository;
+using Food.Services;
+using GraphiQl;
 using GraphQL;
 using GraphQL.MicrosoftDI;
 using GraphQL.SystemTextJson;
+using GraphQL.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Food;
-using Food.Graph.Schema;
-using Food.Repository;
-using Microsoft.EntityFrameworkCore;
-using Food.Interfaces;
-using Food.Services;
-using Food.Graph.Mutation;
-using Food.Graph.Query;
-using Food.Graph.Type;
-using GraphiQl;
 
 namespace GraphQL.WebApi
 {
@@ -28,7 +28,7 @@ namespace GraphQL.WebApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-           
+
             _connectionString = Configuration["ConnectionString"];
         }
 
@@ -47,19 +47,17 @@ namespace GraphQL.WebApi
             services.AddScoped<MainQuery>();
             services.AddScoped<RestaurantGType>();
             services.AddScoped<TagGType>();
-            //services.AddScoped<FoodSchema>();
-            //services.AddScoped<IDataLoaderContextAccessor, DataLoaderContextAccessor>();
-            //services.AddScoped<DataLoaderDocumentListener>();
-
+            services.AddScoped<ISchema, FoodSchema>();
+          
             services.AddGraphQL()
-               .AddSchema<FoodSchema>()
+               //.AddSchema<FoodSchema>()
                .AddSystemTextJson()
-               .AddValidationRule<InputValidationRule>()
-               .AddGraphTypes(typeof(FoodSchema).Assembly)
+               .AddValidationRule<Food.InputValidationRule>()                
+               //.AddGraphTypes(typeof(FoodSchema).Assembly)
                .AddMetrics(_ => true, (provider, _) => provider.GetRequiredService<IOptions<GraphQLSettings>>().Value.EnableMetrics);
 
             services.Configure<GraphQLSettings>(Configuration.GetSection("GraphQLSettings"));
-           
+
             services.AddLogging(builder => builder.AddConsole());
             services.AddHttpContextAccessor();
             services.AddControllers();
@@ -71,10 +69,23 @@ namespace GraphQL.WebApi
 
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();
+
+            var logger = loggerFactory.CreateLogger<Startup>();
+            logger.LogInformation($"ConnectionString: {Configuration["ConnectionString"]}");
+            if (env.IsDevelopment())
+            {
+                using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+                {
+                    serviceScope.ServiceProvider.GetRequiredService<DatabaseContext>().Database.Migrate();
+                }
+            }
+
+            app.UseCors(builder =>
+               builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             app.UseGraphiQl();
             app.UseRouting();

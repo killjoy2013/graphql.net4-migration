@@ -7,7 +7,9 @@
   <ItemGroup>
     <PackageReference Include="graphiql" Version="2.0.0" />
     <PackageReference Include="GraphQL.MicrosoftDI" Version="4.7.1" />
-    <PackageReference Include="GraphQL.SystemTextJson" Version="4.7.1" />     
+    <PackageReference Include="GraphQL.SystemTextJson" Version="4.7.1" />  
+     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.18" />
+    <PackageReference Include="Npgsql" Version="4.1.9" />
       
   </ItemGroup>
   

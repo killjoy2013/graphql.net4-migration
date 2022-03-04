@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace GraphQL.WebApi.Controllers
 {
     [ApiController]
-    [Route("api")]
+    [Route("graphql")]
     public class GraphQLController : Controller
     {
         private readonly IDocumentExecuter _documentExecuter;
@@ -24,7 +24,7 @@ namespace GraphQL.WebApi.Controllers
             _graphQLOptions = options;
         }
 
-        [HttpPost("graphql")]
+        [HttpPost]
         public async Task<IActionResult> GraphQL([FromBody] GraphQLRequest request)
         {
             var startTime = DateTime.UtcNow;

@@ -1,9 +1,10 @@
 ﻿using Food.Graph.Type;
 using Food.Interfaces;
 using Food.Models;
+using GraphQL;
 using GraphQL.Types;
 using System;
-
+using System.Linq;
 
 namespace Food.Graph.Query.Business
 {
@@ -17,16 +18,14 @@ namespace Food.Graph.Query.Business
                ),
                resolve: context =>
                {
-                   //var tagRepo = (IGenericRepository<Tag>)sp.GetService(typeof(IGenericRepository<Tag>));
-                   //var baseQuery = tagRepo.GetAll();
-                   //var name = context.GetArgument<string>("name");
-                   //if (name != default(string))
-                   //{
-                   //    return baseQuery.Where(w => w.Name.Contains(name));
-                   //}
-                   //return baseQuery.ToList();
-
-                   return new Tag[] { };
+                   var tagRepo = (IGenericRepository<Tag>)sp.GetService(typeof(IGenericRepository<Tag>));
+                   var baseQuery = tagRepo.GetAll();
+                   var name = context.GetArgument<string>("name");
+                   if (name != default(string))
+                   {
+                       return baseQuery.Where(w => w.Name.Contains(name));
+                   }
+                   return baseQuery.ToList();
                });
         }
     }

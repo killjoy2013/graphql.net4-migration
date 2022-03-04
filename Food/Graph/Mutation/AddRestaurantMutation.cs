@@ -18,15 +18,14 @@ namespace Food.Graph.Mutation
             resolve: context =>
             {                                
                 var name = context.GetArgument<string>("name");
-
-                //var restaurantRepo = (IGenericRepository<Restaurant>)sp.GetService(typeof(IGenericRepository<Restaurant>));
+                var restaurantRepo = (IGenericRepository<Restaurant>)sp.GetService(typeof(IGenericRepository<Restaurant>));
 
                 var newRestaurant = new Restaurant
                 {
                     Name = name,
                 };
 
-                //restaurantRepo.Insert(newRestaurant);
+                restaurantRepo.Insert(newRestaurant);
                 return newRestaurant;
             });
         }
