@@ -1,21 +1,23 @@
 using GraphQL;
-using GraphQL.Server;
-using GraphQL.Server.Ui.Playground;
-using GraphQL.Types;
-using GraphQL.WebApi.Graph.Mutation;
-using GraphQL.WebApi.Graph.Query;
-using GraphQL.WebApi.Graph.Schema;
-using GraphQL.WebApi.Graph.Type;
-using GraphQL.WebApi.Interfaces;
-using GraphQL.WebApi.Repository;
-using GraphQL.WebApi.Services;
+using GraphQL.MicrosoftDI;
+using GraphQL.SystemTextJson;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Food;
+using Food.Graph.Schema;
+using Food.Repository;
+using Microsoft.EntityFrameworkCore;
+using Food.Interfaces;
+using Food.Services;
+using Food.Graph.Mutation;
+using Food.Graph.Query;
+using Food.Graph.Type;
+using GraphiQl;
 
 namespace GraphQL.WebApi
 {
@@ -23,10 +25,10 @@ namespace GraphQL.WebApi
     {
         private readonly IWebHostEnvironment _env;
         private readonly string _connectionString;
-        public Startup(IConfiguration configuration, IWebHostEnvironment env)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _env = env;
+           
             _connectionString = Configuration["ConnectionString"];
         }
 
@@ -45,30 +47,36 @@ namespace GraphQL.WebApi
             services.AddScoped<MainQuery>();
             services.AddScoped<RestaurantGType>();
             services.AddScoped<TagGType>();
-            services.AddScoped<FoodSchema>();
-            services.AddGraphQL()                
-              .AddGraphTypes(ServiceLifetime.Scoped);
+            //services.AddScoped<FoodSchema>();
+            //services.AddScoped<IDataLoaderContextAccessor, DataLoaderContextAccessor>();
+            //services.AddScoped<DataLoaderDocumentListener>();
 
-            services.AddCors();
-            
-            services.Configure<KestrelServerOptions>(options =>
+            services.AddGraphQL()
+               .AddSchema<FoodSchema>()
+               .AddSystemTextJson()
+               .AddValidationRule<InputValidationRule>()
+               .AddGraphTypes(typeof(FoodSchema).Assembly)
+               .AddMetrics(_ => true, (provider, _) => provider.GetRequiredService<IOptions<GraphQLSettings>>().Value.EnableMetrics);
+
+            services.Configure<GraphQLSettings>(Configuration.GetSection("GraphQLSettings"));
+           
+            services.AddLogging(builder => builder.AddConsole());
+            services.AddHttpContextAccessor();
+            services.AddControllers();
+            services.AddGraphiQl(x =>
             {
-                options.AllowSynchronousIO = true;
+                x.GraphiQlPath = "/graphiql-ui";
+                x.GraphQlApiPath = "/graphql";
             });
 
-            services.AddControllers()
-                .AddNewtonsoftJson(options =>
-                       options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-                );
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
-        {     
-            app.UseCors(builder =>
-               builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
-           
-            app.UseGraphQLPlayground(new GraphQLPlaygroundOptions());
-          
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
+
+            app.UseGraphiQl();
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>

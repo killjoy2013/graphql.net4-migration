@@ -1,56 +1,55 @@
-﻿using GraphQL.NewtonsoftJson;
+﻿using GraphQL;
+using GraphQL.Instrumentation;
+using GraphQL.SystemTextJson;
 using GraphQL.Types;
-using GraphQL.Validation.Complexity;
-using GraphQL.WebApi.Graph.Schema;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.Http;
+using Microsoft.Extensions.Options;
+using System;
 using System.Threading.Tasks;
 
 namespace GraphQL.WebApi.Controllers
 {
-    [Route("graphql")]
+    [ApiController]
+    [Route("api")]
     public class GraphQLController : Controller
     {
-        private IDocumentExecuter _executer;       
-        private FoodSchema _schema;
+        private readonly IDocumentExecuter _documentExecuter;
+        private readonly ISchema _schema;
+        private readonly IOptions<GraphQLSettings> _graphQLOptions;
 
-        public GraphQLController(
-             IDocumentExecuter executer,            
-             FoodSchema schema)
+        public GraphQLController(IDocumentExecuter documentExecuter, ISchema schema, IOptions<GraphQLSettings> options)
         {
-            _executer = executer;           
+            _documentExecuter = documentExecuter;
             _schema = schema;
+            _graphQLOptions = options;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PostAsync(HttpRequestMessage request, [FromBody] GraphQLQuery query)
+        [HttpPost("graphql")]
+        public async Task<IActionResult> GraphQL([FromBody] GraphQLRequest request)
         {
-            var inputs = query.Variables.ToInputs();
-            var queryToExecute = query.Query;
+            var startTime = DateTime.UtcNow;
 
-            var result = await _executer.ExecuteAsync(_ =>
+            var result = await _documentExecuter.ExecuteAsync(s =>
             {
-                _.Schema = _schema;
-                _.Query = queryToExecute;
-                _.OperationName = query.OperationName;
-                _.Inputs = inputs;
+                s.Schema = _schema;
+                s.Query = request.Query;
+                s.Inputs = request.Variables.ToInputs();
+                s.OperationName = request.OperationName;
+                s.RequestServices = HttpContext.RequestServices;
+                s.UserContext = new GraphQLUserContext
+                {
+                    User = HttpContext.User,
+                };
+                s.CancellationToken = HttpContext.RequestAborted;
+            });
 
-                _.ComplexityConfiguration = new ComplexityConfiguration { MaxDepth = 15 };
-
-            }).ConfigureAwait(false);
-
-            if (result.Errors?.Count > 0)
-            {                
-                return BadRequest(new { result, result.Errors });
+            if (_graphQLOptions.Value.EnableMetrics)
+            {
+                result.EnrichWithApolloTracing(startTime);
             }
-            return Ok(result);
+
+            return new ExecutionResultActionResult(result);
         }
     }
 
-    public class GraphQLQuery
-    {
-        public string OperationName { get; set; }
-        public string Query { get; set; }
-        public Newtonsoft.Json.Linq.JObject Variables { get; set; }
-    }
 }

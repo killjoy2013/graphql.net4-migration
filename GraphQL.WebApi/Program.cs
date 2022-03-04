@@ -11,21 +11,14 @@ namespace GraphQL.WebApi
     {
         public static void Main(string[] args)
         {
-            var path = Directory.GetCurrentDirectory();
-            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
-            var configuration = new ConfigurationBuilder()
-               .SetBasePath(path)
-               .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-               .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
-               .AddEnvironmentVariables()
-               .Build();
-
-
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-             WebHost.CreateDefaultBuilder(args)
-                 .UseStartup<Startup>();
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }

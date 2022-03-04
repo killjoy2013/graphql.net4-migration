@@ -4,8 +4,8 @@
     "GraphQL.WebApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "ui/playground",
-      "applicationUrl": "http://localhost:5900",
+      "launchUrl": "graphiql-ui/",
+      "applicationUrl": "http://localhost:5900/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
