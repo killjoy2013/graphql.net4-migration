@@ -66,7 +66,7 @@ namespace GraphQL.WebApi
                 x.GraphiQlPath = "/graphiql-ui";
                 x.GraphQlApiPath = "/graphql";
             });
-
+        
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
@@ -87,7 +87,8 @@ namespace GraphQL.WebApi
             app.UseCors(builder =>
                builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
-            app.UseGraphiQl();
+            app.UseGraphiQl();           
+
             app.UseRouting();
 
             app.UseEndpoints(endpoints =>
